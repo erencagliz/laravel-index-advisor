@@ -1,0 +1,55 @@
+{
+    "name": "erencagliz/laravel-index-advisor",
+    "description": "Runtime query observer and index recommendation package for Laravel.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "index",
+        "database",
+        "performance",
+        "query",
+        "advisor"
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "doctrine/dbal": "^4.0",
+        "greenlion/php-sql-parser": "^4.7"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Erencagliz\\LaravelIndexAdvisor\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Erencagliz\\LaravelIndexAdvisor\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Erencagliz\\LaravelIndexAdvisor\\LaravelIndexAdvisorServiceProvider"
+            ],
+            "aliases": {
+                "IndexAdvisor": "Erencagliz\\LaravelIndexAdvisor\\Facades\\IndexAdvisor"
+            }
+        }
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": false
+        }
+    }
+}

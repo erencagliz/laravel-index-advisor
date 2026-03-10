@@ -141,6 +141,9 @@ php artisan index-advisor:suggest --min-score=60
 Use --json for full machine-readable details or --persist to store suggestions.
 ```
 
+> **Note:** Index suggestions are hints based on observed workload and heuristics.  
+> Always review them in the context of your schema and business logic before applying migrations, especially on write-heavy tables.
+
 ---
 
 ### Workload report
@@ -224,6 +227,16 @@ Main settings in `config/index-advisor.php`:
    - For any selected suggestion, a Laravel migration stub is generated, including both:
      - `up` (add index),  
      - `down` (drop the same index).
+
+---
+
+### Limitations
+
+- This is **not** a full cost-based optimizer; it focuses on common `SELECT` patterns and heuristic rules.  
+- Queries with heavy subqueries, unions, or window functions are treated conservatively and may not produce suggestions.  
+- Officially focused on MySQL/MariaDB/PostgreSQL; behavior on other drivers may vary.  
+- Write-heavy workloads may require more careful review of suggestions (index write overhead is not fully modeled yet).  
+- Migrations are **never applied automatically** – they always go through your normal deployment and migration workflow.
 
 ---
 
@@ -313,7 +326,7 @@ The package uses Pest + Orchestra Testbench.
 ```bash
 composer install
 
-vendor/bin/pest
+php vendor/bin/pest
 ```
 
 Key coverage areas:

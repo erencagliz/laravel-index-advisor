@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('type'); // fingerprint|table|columns
             $table->string('fingerprint')->nullable();
             $table->string('table_name')->nullable();
-            $table->json('columns')->nullable();
+            $table->jsonb('columns')->nullable();
             $table->string('reason')->nullable();
             $table->timestamps();
 

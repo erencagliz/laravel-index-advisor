@@ -24,8 +24,8 @@ return new class extends Migration {
             $table->dateTime('first_seen_at');
             $table->dateTime('last_seen_at');
             $table->string('parse_status')->default('pending');
-            $table->json('parse_warnings')->nullable();
-            $table->json('shape')->nullable();
+            $table->jsonb('parse_warnings')->nullable();
+            $table->jsonb('shape')->nullable();
             $table->timestamps();
         });
 
@@ -34,14 +34,14 @@ return new class extends Migration {
             $table->string('fingerprint');
             $table->string('connection_name');
             $table->string('table_name');
-            $table->json('suggested_columns');
+            $table->jsonb('suggested_columns');
             $table->string('suggested_index_type')->default('index');
             $table->string('suggested_index_name')->nullable();
             $table->text('reason');
             $table->unsignedTinyInteger('confidence_score');
-            $table->json('supporting_stats')->nullable();
-            $table->json('similar_existing_indexes')->nullable();
-            $table->json('warnings')->nullable();
+            $table->jsonb('supporting_stats')->nullable();
+            $table->jsonb('similar_existing_indexes')->nullable();
+            $table->jsonb('warnings')->nullable();
             $table->string('status')->default('pending');
             $table->timestamps();
 

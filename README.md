@@ -61,6 +61,16 @@ Laravel Index Advisor:
   - Ignore rules (by fingerprint, table or table+columns).  
   - Mark suggestions as accepted or dismissed with optional reasons.
 
+- **Advanced suggestion intelligence**
+  - Detects JSON column patterns (`->>`) and suggests GIN (PostgreSQL) or Generated Column (MySQL) indexes.
+  - Suggests Covering Indexes and Composite Indexes for complex `IN` and `OR` clauses.
+  - **Unused Index Detection:** Finds and suggests dropping existing indexes that are never used (MySQL/PostgreSQL).
+
+- **Performance & Security built-in**
+  - Optional Asynchronous Queue support for zero-latency query logging.
+  - Strict PII scrubbing via `sensitive_keywords` config.
+  - Configurable `max_query_length` to prevent ReDoS / memory exhaustion.
+
 - **Developer-friendly tooling**  
   - Artisan commands for reporting, suggesting, analyzing and cleaning.  
   - Facade/API to consume suggestions programmatically.  
@@ -122,6 +132,12 @@ php artisan index-advisor:generate-migration --suggestion=1
 ```
 
 This creates a migration file under `database/migrations` that adds the recommended index.
+
+Find and drop unused indexes to reclaim disk space and improve INSERT/UPDATE performance:
+
+```bash
+php artisan index-advisor:drop-suggest
+```
 
 ---
 
@@ -187,9 +203,33 @@ Main settings in `config/index-advisor.php`:
 - **`ignore_connections` / `ignore_tables` / `ignore_paths`**  
   Connections, tables, and request paths to exclude from observation.
 
+- **`max_query_length`**  
+  Queries longer than this (in characters) are instantly rejected to prevent memory exhaustion (default: 10000).
+
+- **`sensitive_keywords`**  
+  Array of keywords (e.g. `password`, `token`). If a query contains these, its raw SQL is scrubbed and never stored, keeping your logs PII-free.
+
+- **`queue.enabled`**  
+  When `true`, query observation and storage is dispatched as a background Job, completely eliminating overhead from the main request lifecycle.
+
 - **`explain.enabled`**  
   Enables EXPLAIN-based analysis of sampled queries.  
   When enabled, some EXPLAIN signals are included in `supporting_stats` and confidence scoring.
+
+---
+
+### Data Retention & Cleanup
+
+The package automatically stores query logs. To prevent your database from growing infinitely, you should schedule the `flush` command to run daily. It respects the `retention_days` config:
+
+```php
+// In routes/console.php or app/Console/Kernel.php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('index-advisor:flush')->daily();
+```
+
+You can also flush everything manually: `php artisan index-advisor:flush --all`
 
 ---
 
@@ -316,6 +356,12 @@ In host applications, you can additionally:
 - Seed a realistic dataset,
 - Hit a few critical endpoints/commands,
 - Run `php artisan index-advisor:suggest --json` and attach the JSON to PRs as an artifact or PR comment.
+
+Or, to automatically fail the build if a critical missing index is detected:
+
+```bash
+php artisan index-advisor:check-ci --min-score=70
+```
 
 ---
 

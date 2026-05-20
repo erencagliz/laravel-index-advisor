@@ -75,6 +75,8 @@ class LaravelIndexAdvisorServiceProvider extends ServiceProvider
             Commands\MarkSuggestionCommand::class,
             Commands\IgnoreCommand::class,
             Commands\WorkloadReportCommand::class,
+            Commands\DropSuggestCommand::class,
+            Commands\CheckCICommand::class,
         ]);
     }
 

@@ -61,6 +61,26 @@ final class DefaultSuggestionEngine implements SuggestionEngine
 
         $suggestions = [];
 
+        // Check for JSON column usage
+        foreach ($whereColumns as $col) {
+            if (str_contains($col, '->>') || str_contains($col, '->')) {
+                $baseCol = explode('->', $col)[0];
+                if (! $this->ignores->shouldIgnoreSuggestion($table, [$baseCol], $row->fingerprint)) {
+                    $indexType = $connection === 'pgsql' ? 'GIN' : 'Generated Column B-Tree';
+                    $suggestions[] = $this->buildSuggestion(
+                        $table,
+                        [$baseCol],
+                        $indexType,
+                        "JSON search detected on column '$baseCol'. Consider a $indexType index.",
+                        75,
+                        $row,
+                        [],
+                        ['JSON indexing syntax depends on the database version.']
+                    );
+                }
+            }
+        }
+
         if (count($whereColumns) === 1) {
             $columns = [$whereColumns[0]];
 
@@ -117,6 +137,37 @@ final class DefaultSuggestionEngine implements SuggestionEngine
                         []
                     );
                 }
+            }
+
+            // Suggest Covering Index if there are multiple columns and limit
+            if ($shape->limit !== null && $confidence >= 40) {
+                 $reason = 'Frequent query with LIMIT; a covering index could significantly improve performance.';
+                 $suggestions[] = $this->buildSuggestion(
+                     $table,
+                     $columns,
+                     'covering_index',
+                     $reason,
+                     $confidence + 5,
+                     $row,
+                     $similar,
+                     []
+                 );
+            }
+
+            // Smarter analysis: suggest composite or covering if OR / IN is used
+            $sqlLower = strtolower($row->normalized_sql);
+            if ((str_contains($sqlLower, ' in (') || str_contains($sqlLower, ' or ')) && $confidence >= 40) {
+                $reason = 'Complex filter detected (IN / OR). A composite or covering index is highly recommended to avoid full table scans.';
+                $suggestions[] = $this->buildSuggestion(
+                    $table,
+                    $columns,
+                    'index',
+                    $reason,
+                    $confidence + 10,
+                    $row,
+                    $similar,
+                    ['IN or OR clauses might prevent index usage depending on the database engine. Verify with EXPLAIN.']
+                );
             }
         }
 

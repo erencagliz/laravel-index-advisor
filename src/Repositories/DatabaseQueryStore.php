@@ -25,9 +25,7 @@ final class DatabaseQueryStore implements QueryStore
                 'connection_name' => $query->connectionName,
                 'table_name' => null,
                 'normalized_sql' => $query->normalizedSql,
-                'sample_raw_sql' => config('index-advisor.store_raw_sql_sample', false)
-                    ? $query->rawSql
-                    : null,
+                'sample_raw_sql' => $query->rawSql,
                 'executions' => 1,
                 'total_time_ms' => (int) round($query->executionTimeMs),
                 'avg_time_ms' => $query->executionTimeMs,

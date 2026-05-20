@@ -36,6 +36,11 @@ final class QueryWatcher
             return;
         }
 
+        $maxLength = (int) config('index-advisor.max_query_length', 10000);
+        if (mb_strlen($event->sql) > $maxLength) {
+            return;
+        }
+
         $executionTimeMs = (float) $event->time;
         $minTime = (int) config('index-advisor.min_query_time_ms', 20);
 
@@ -51,9 +56,20 @@ final class QueryWatcher
             null
         );
 
+        $rawSql = config('index-advisor.store_raw_sql_sample', false) ? $event->sql : null;
+        if ($rawSql !== null) {
+            $sensitiveKeywords = config('index-advisor.sensitive_keywords', []);
+            foreach ($sensitiveKeywords as $keyword) {
+                if (stripos($rawSql, $keyword) !== false) {
+                    $rawSql = null;
+                    break;
+                }
+            }
+        }
+
         $observed = new ObservedQuery(
             connectionName: $event->connectionName,
-            rawSql: $event->sql,
+            rawSql: $rawSql,
             normalizedSql: $normalizedSql,
             fingerprint: $fingerprint,
             executionTimeMs: $executionTimeMs,
@@ -66,7 +82,18 @@ final class QueryWatcher
             observedAt: new \DateTimeImmutable(),
         );
 
-        $this->store->record($observed);
+        $this->recordOrDispatch($observed);
+    }
+
+    private function recordOrDispatch(ObservedQuery $observed): void
+    {
+        if (config('index-advisor.queue.enabled', false)) {
+            \Erencagliz\LaravelIndexAdvisor\Jobs\RecordQueryJob::dispatch($observed)
+                ->onConnection(config('index-advisor.queue.connection'))
+                ->onQueue(config('index-advisor.queue.queue'));
+        } else {
+            $this->store->record($observed);
+        }
     }
 
     private function shouldIgnoreConnection(string $connection): bool

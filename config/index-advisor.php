@@ -9,11 +9,23 @@ return [
 
     'min_query_time_ms' => (int) env('INDEX_ADVISOR_MIN_QUERY_TIME_MS', 20),
 
+    'max_query_length' => (int) env('INDEX_ADVISOR_MAX_QUERY_LENGTH', 10000),
+
     'min_executions' => (int) env('INDEX_ADVISOR_MIN_EXECUTIONS', 25),
 
     'retention_days' => (int) env('INDEX_ADVISOR_RETENTION_DAYS', 7),
 
     'store_raw_sql_sample' => env('INDEX_ADVISOR_STORE_RAW_SQL_SAMPLE', false),
+
+    'sensitive_keywords' => [
+        'password',
+        'token',
+        'secret',
+        'cvv',
+        'card',
+        'auth',
+        'key',
+    ],
 
     'ignore_connections' => [
         'sqlite_testing',

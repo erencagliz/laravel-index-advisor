@@ -39,7 +39,7 @@ final class SuggestCommand extends Command
             $query->where('connection_name', $connection);
         }
 
-        $rows = $query->get();
+        $rows = $query->cursor();
 
         $allSuggestions = [];
 

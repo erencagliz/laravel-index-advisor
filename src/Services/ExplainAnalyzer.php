@@ -23,6 +23,10 @@ final class ExplainAnalyzer
             return null;
         }
 
+        if (str_contains($sql, ';')) {
+            return null;
+        }
+
         try {
             $rows = DB::connection($connection)->select('EXPLAIN ' . $rawSql);
         } catch (\Throwable) {

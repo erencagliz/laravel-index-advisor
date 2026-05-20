@@ -8,7 +8,7 @@ final class ObservedQuery
 {
     public function __construct(
         public readonly string $connectionName,
-        public readonly string $rawSql,
+        public readonly ?string $rawSql,
         public readonly string $normalizedSql,
         public readonly string $fingerprint,
         public readonly float $executionTimeMs,
